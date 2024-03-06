@@ -52,4 +52,8 @@ export class Torrent implements RawTorrent {
     Object.assign(this, data)
     this.client = client
   }
+
+  public getGenericProperties() {
+    return this.client.getTorrentGenericProperties(this.hash)
+  }
 }
