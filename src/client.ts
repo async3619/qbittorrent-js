@@ -2,7 +2,9 @@ import setCookie from 'set-cookie-parser'
 import fetch, { RequestInit } from 'node-fetch'
 
 import { TorrentFilter } from './enums'
+
 import { RawTorrent, Torrent } from './types/torrent'
+import { TorrentGenericProperties } from './types/torrent-generic-properties'
 
 interface GetTorrentListOptions {
   filter?: TorrentFilter
@@ -61,6 +63,14 @@ export class Client {
       .then((items: RawTorrent[]) =>
         items.map((torrent) => new Torrent(this, torrent)),
       )
+  }
+
+  public async getTorrentGenericProperties(hash: string) {
+    return this.fetch(`/api/v2/torrents/properties`, {
+      queries: { hash },
+    })
+      .then((response) => response.json())
+      .then((properties) => new TorrentGenericProperties(properties))
   }
 
   private async fetch(path: string, init?: FetchOptions) {

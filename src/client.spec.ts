@@ -116,4 +116,38 @@ describe('Client', () => {
       )
     })
   })
+
+  describe('getTorrentGenericProperties()', () => {
+    let client: Client
+
+    beforeEach(async () => {
+      nock('http://localhost:8080')
+        .post('/api/v2/auth/login')
+        .query(true)
+        .reply(200, '', { 'set-cookie': 'SID=1234' })
+
+      client = await Client.login('http://localhost:8080', 'user', 'pass')
+    })
+
+    it('should be able to fetch generic properties', async () => {
+      nock('http://localhost:8080')
+        .get('/api/v2/torrents/properties')
+        .query({ hash: 'HASH' })
+        .reply(200, { name: 'torrent1' })
+
+      const properties = await client.getTorrentGenericProperties('HASH')
+      expect(properties).toMatchObject({ name: 'torrent1' })
+    })
+
+    it('should throw an error when fetching generic properties fails', () => {
+      nock('http://localhost:8080')
+        .get('/api/v2/torrents/properties')
+        .query({ hash: 'HASH' })
+        .reply(500)
+
+      return expect(client.getTorrentGenericProperties('HASH')).rejects.toThrow(
+        'Request failed: 500 Internal Server Error',
+      )
+    })
+  })
 })
