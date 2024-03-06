@@ -2,7 +2,7 @@ import setCookie from 'set-cookie-parser'
 import fetch, { RequestInit } from 'node-fetch'
 
 import { TorrentFilter } from './enums'
-import { Torrent } from './types/torrent'
+import { RawTorrent, Torrent } from './types/torrent'
 
 interface GetTorrentListOptions {
   filter?: TorrentFilter
@@ -56,7 +56,11 @@ export class Client {
   }: GetTorrentListOptions = {}): Promise<Torrent[]> {
     return this.fetch(`/api/v2/torrents/info`, {
       queries: { filter, limit, offset },
-    }).then((response) => response.json())
+    })
+      .then((response) => response.json())
+      .then((items: RawTorrent[]) =>
+        items.map((torrent) => new Torrent(this, torrent)),
+      )
   }
 
   private async fetch(path: string, init?: FetchOptions) {

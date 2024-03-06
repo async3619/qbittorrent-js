@@ -1,6 +1,7 @@
 import nock from 'nock'
 import { Client } from './client'
 import { TorrentFilter } from './enums'
+import { Torrent } from './types/torrent'
 
 describe('Client', () => {
   describe('login()', () => {
@@ -66,38 +67,42 @@ describe('Client', () => {
       client = await Client.login('http://localhost:8080', 'user', 'pass')
     })
 
-    it('should be able to fetch torrent lists', () => {
+    it('should be able to fetch torrent lists', async () => {
       nock('http://localhost:8080')
         .get('/api/v2/torrents/info')
         .query(true)
         .reply(200, [{ name: 'torrent1' }, { name: 'torrent2' }])
 
-      return expect(client.getTorrentList()).resolves.toEqual([
-        { name: 'torrent1' },
-        { name: 'torrent2' },
-      ])
+      const torrents = await client.getTorrentList()
+      for (const torrent of torrents) {
+        expect(torrent).toBeInstanceOf(Torrent)
+      }
     })
 
-    it('should be able to fetch torrent lists with filters', () => {
+    it('should be able to fetch torrent lists with filters', async () => {
       nock('http://localhost:8080')
         .get('/api/v2/torrents/info')
         .query({ filter: TorrentFilter.Active })
         .reply(200, [{ name: 'torrent1' }, { name: 'torrent2' }])
 
-      return expect(
-        client.getTorrentList({ filter: TorrentFilter.Active }),
-      ).resolves.toEqual([{ name: 'torrent1' }, { name: 'torrent2' }])
+      const torrents = await client.getTorrentList({
+        filter: TorrentFilter.Active,
+      })
+      for (const torrent of torrents) {
+        expect(torrent).toBeInstanceOf(Torrent)
+      }
     })
 
-    it('should be able to fetch torrent lists with pagination', () => {
+    it('should be able to fetch torrent lists with pagination', async () => {
       nock('http://localhost:8080')
         .get('/api/v2/torrents/info')
         .query({ limit: 10, offset: 20 })
         .reply(200, [{ name: 'torrent1' }, { name: 'torrent2' }])
 
-      return expect(
-        client.getTorrentList({ limit: 10, offset: 20 }),
-      ).resolves.toEqual([{ name: 'torrent1' }, { name: 'torrent2' }])
+      const torrents = await client.getTorrentList({ limit: 10, offset: 20 })
+      for (const torrent of torrents) {
+        expect(torrent).toBeInstanceOf(Torrent)
+      }
     })
 
     it('should throw an error when fetching torrent lists fails', () => {
